@@ -14,5 +14,8 @@ void main() async {
   var game = JoGame();
   runApp(game.widget);
 
-  Flame.util.addGestureRecognizer(PanGestureRecognizer());
+//  Flame.util.addGestureRecognizer(PanGestureRecognizer());
+
+  Flame.util.addGestureRecognizer(ImmediateMultiDragGestureRecognizer()
+  ..onStart = (Offset event) => game.input(event));
 }
