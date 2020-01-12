@@ -8,6 +8,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Flame.images.loadAll([
     "player_1.png",
+    "map.png",
   ]);
   await Flame.util.fullScreen();
   await Flame.util.setLandscape();
@@ -17,5 +18,5 @@ void main() async {
 //  Flame.util.addGestureRecognizer(PanGestureRecognizer());
 
   Flame.util.addGestureRecognizer(ImmediateMultiDragGestureRecognizer()
-  ..onStart = (Offset event) => game.input(event));
+    ..onStart = (Offset event) => game.input(event));
 }

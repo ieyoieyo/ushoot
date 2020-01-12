@@ -46,6 +46,7 @@ flutter:
   assets:
     - assets/flare/
     - assets/images/
+    - assets/map2.svg
   #  - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
