@@ -3,6 +3,9 @@ import 'dart:ui';
 
 import 'package:flame/components/component.dart';
 import 'package:flame/flare_animation.dart';
+import 'package:flame/position.dart';
+import 'package:flame/time.dart';
+import 'package:flutter/material.dart';
 import 'package:ushoot/JoGame.dart';
 
 ///用 FlareComponent 來改的 Class。因為 FlareComponent 不能切換動畫(updateAnimation)
@@ -12,6 +15,7 @@ class Bad01 extends PositionComponent {
   final String fileName;
   String animName;
   bool isDead = false;
+  bool toDestroy = false;
   double dir;
 
   double get bad01Size {
@@ -21,7 +25,7 @@ class Bad01 extends PositionComponent {
   Rect get hitRect {
     Rect rr = toRect();
     return Rect.fromCenter(
-            center: rr.center, width: rr.width / 6, height: rr.height / 7)
+            center: rr.center, width: rr.width / 4, height: rr.height / 6)
         .translate(0, rr.height / 15);
 //    return Rect.fromLTRB(rr.left + width *2/5, rr.top + height * 4 / 9,
 //        rr.right - width / 3, rr.bottom - width / 3);
@@ -49,8 +53,11 @@ class Bad01 extends PositionComponent {
       return dir == 0 ? false : dir.abs() < pi / 2;
   }
 
-  void _jump() {
-    _flareAnimation?.updateAnimation("Jump");
+  void toDead() {
+    if (isDead) return;
+    _flareAnimation.updateAnimation("Dead");
+    isDead = true;
+    countdown.start();
   }
 
   @override
@@ -59,23 +66,33 @@ class Bad01 extends PositionComponent {
   @override
   void update(double dt) {
     if (_flareAnimation != null) {
-      if (isDead) {
-        isDead = false;
-        _jump();
+      countdown.update(dt);
+
+      if (countdown.isFinished()) {
+        toDestroy = true;
       }
-      _flareAnimation.update(dt);
+
+      if (JoGame.walk) {
+        var target = toPosition().toOffset() + game.mapMoveStep;
+        var newOffset = Offset.lerp(toPosition().toOffset(), target, dt);
+        setByPosition(Position.fromOffset(newOffset));
+      }
 
       if (isLeftDir) {
         renderFlipX = true;
       } else {
         renderFlipX = false;
       }
+
+      _flareAnimation.update(dt);
     }
   }
 
   @override
   void render(Canvas canvas) {
     prepareCanvas(canvas);
+    if (!loaded()) return;
+
     _flareAnimation.render(canvas, x: 0, y: 0);
   }
 
@@ -83,4 +100,11 @@ class Bad01 extends PositionComponent {
   void resize(Size size) {
     init(bad01Size, bad01Size);
   }
+
+  @override
+  bool destroy() {
+    return toDestroy;
+  }
+
+  final Timer countdown = Timer(.55);
 }

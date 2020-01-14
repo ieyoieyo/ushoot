@@ -20,7 +20,7 @@ import 'bad01.dart';
 import 'main.dart';
 
 class JoGame extends BaseGame with PanDetector {
-  bool isDebug = true;
+  bool isDebug = false;
   Player player;
   Size screenSize;
   static double unit;
@@ -52,17 +52,12 @@ class JoGame extends BaseGame with PanDetector {
       const TextConfig(color: const Color(0xFFFFFFFF));
 
   SpriteComponent map;
-  SvgComponent jmap;
 
   void init() {
-    jmap = SvgComponent.fromSvg(1300.0, 1300.0, Svg("map2.svg"))
+    map = SpriteComponent.square(1300.0, "map.png")
       ..x = -220.0
       ..y = -285.0;
-//    map = SpriteComponent.square(1300.0, "map.png")
-//      ..x = -220.0
-//      ..y = -285.0;
-//    add(map);
-    add(jmap);
+    add(map);
 
     bad01 = Bad01(this, "assets/flare/bad01.flr", "Walk");
     add(bad01);
@@ -80,6 +75,7 @@ class JoGame extends BaseGame with PanDetector {
   }
 
   final double judoSpeed = 40.0;
+  Offset mapMoveStep;
   Offset shootLineStart, shootLineEnd, bulletStart, bulletEnd;
   double bulletSpeed = 22.0;
   double bulletDirection = 0;
@@ -87,13 +83,10 @@ class JoGame extends BaseGame with PanDetector {
 
   @override
   void update(double t) {
-    super.update(t);
     countdown.update(t);
-//    if (loaded) {
-//        judo.toJump = true;
+
     if (drawLine) {
       var pOffset = panEnd - panStart;
-//      if (pOffset != Offset.zero) {
       shootLineEnd =
           shootLineStart + Offset.fromDirection(pOffset.direction, 220.0);
 
@@ -121,17 +114,15 @@ class JoGame extends BaseGame with PanDetector {
       judo.dir = dOffset.direction;
       judo.toWalk();
 
-      var mapMove = Offset.fromDirection(dOffset.direction, judoSpeed);
-      var target = jmap.toPosition().toOffset() + mapMove;
-      var newOffset = Offset.lerp(jmap.toPosition().toOffset(), target, t);
-      jmap.setByPosition(Position.fromOffset(newOffset));
-//      var target = map.toPosition().toOffset() + mapMove;
-//      var newOffset = Offset.lerp(map.toPosition().toOffset(), target, t);
-//      map.setByPosition(Position.fromOffset(newOffset));
+      mapMoveStep = Offset.fromDirection(dOffset.direction, judoSpeed);
+      var target = map.toPosition().toOffset() + mapMoveStep;
+      var newOffset = Offset.lerp(map.toPosition().toOffset(), target, t);
+      map.setByPosition(Position.fromOffset(newOffset));
     } else {
       judo.toIdle();
     }
-//    }
+
+    super.update(t);
   }
 
   @override
@@ -158,7 +149,7 @@ class JoGame extends BaseGame with PanDetector {
       }
     }
 
-    if (isDebug) {
+    if (isDebug && !bad01.isDead) {
       canvas.drawRect(bad01.hitRect,
           Paint()..color = Colors.lightGreenAccent.withAlpha(200));
     }
@@ -191,9 +182,10 @@ class JoGame extends BaseGame with PanDetector {
         Offset.fromDirection(bulletDirection + pi / 2, bulletWidth / 2);
     bltHitPointB = bulletEnd +
         Offset.fromDirection(bulletDirection - pi / 2, bulletWidth / 2);
-    [bltHitPointA, bltHitPointB, bulletStart, bulletEnd]..forEach((offset) {
+    [bulletEnd]..forEach((offset) {
         if (bad01.hitRect.contains(offset)) {
           print("HIT");
+          bad01.toDead();
         }
       });
 //    print("a = $a,,, b = $b");
