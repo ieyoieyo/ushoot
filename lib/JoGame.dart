@@ -75,14 +75,16 @@ class JoGame extends BaseGame with PanDetector {
   }
 
   final double judoSpeed = 40.0;
-  Offset mapMoveStep;
   Offset shootLineStart, shootLineEnd, bulletStart, bulletEnd;
   double bulletSpeed = 22.0;
   double bulletDirection = 0;
   double bulletWidth = 18.0;
 
+  Offset judoMoved;
+
   @override
   void update(double t) {
+    super.update(t);
     countdown.update(t);
 
     if (drawLine) {
@@ -109,20 +111,38 @@ class JoGame extends BaseGame with PanDetector {
       }
     }
 
-    if (walk) {
-      var dOffset = dir_panStart - dir_panEnd;
-      judo.dir = dOffset.direction;
-      judo.toWalk();
-
-      mapMoveStep = Offset.fromDirection(dOffset.direction, judoSpeed);
-      var target = map.toPosition().toOffset() + mapMoveStep;
-      var newOffset = Offset.lerp(map.toPosition().toOffset(), target, t);
-      map.setByPosition(Position.fromOffset(newOffset));
-    } else {
-      judo.toIdle();
+    //移動Camera
+    if (dir_panStart != null &&
+        dir_panEnd != null &&
+        ((judo.x - camera.x > judoCenterPos.dx + 1) ||
+            (judo.y - camera.y > judoCenterPos.dy + 1))) {
+//      print("judo Offset = ${judo.toPosition().toOffset()}");
+      judoMoved =
+          Offset(judo.x - judoCenterPos.dx, judo.y - judoCenterPos.dy);
+      var newOffset = Offset.lerp(camera.toOffset(), judoMoved, t);
+      camera.x = newOffset.dx;
+      camera.y = newOffset.dy;
+//      print("judoMoved= ${judoMoved}");
+      var stepMove = Offset.fromDirection((panEnd-panStart).direction, judo.judoSpeed);
+      var target = shootLineStart + stepMove;
+      var aa = Offset.lerp(shootLineStart, target, t);
+      shootLineStart = aa;
+//      shootLineStart = Offset.lerp(shootLineStart, screenRect.center+judoMoved, t);
     }
 
-    super.update(t);
+    if (walk) {
+
+//      var dOffset = dir_panStart - dir_panEnd;
+//      judo.dir = dOffset.direction;
+//      judo.toWalk();
+//
+//      mapMoveStep = Offset.fromDirection(dOffset.direction, judoSpeed);
+//      var target = map.toPosition().toOffset() + mapMoveStep;
+//      var newOffset = Offset.lerp(map.toPosition().toOffset(), target, t);
+//      map.setByPosition(Position.fromOffset(newOffset));
+    } else {
+//      judo.toIdle();
+    }
   }
 
   @override
@@ -153,7 +173,10 @@ class JoGame extends BaseGame with PanDetector {
       canvas.drawRect(bad01.hitRect,
           Paint()..color = Colors.lightGreenAccent.withAlpha(200));
     }
+
   }
+
+  Offset judoCenterPos; //主角置中時，主角的Position
 
   @override
   void resize(Size size) {
@@ -167,10 +190,12 @@ class JoGame extends BaseGame with PanDetector {
 //    print("unit = $unit, judo.width = ${judo.width}");
     judo.x = (screenSize.width - judo.width) / 2;
     judo.y = (screenSize.height - judo.height) / 2;
+    judoCenterPos = Offset(judo.x, judo.y);
     bad01.x = 480.0;
     bad01.y = 20.0;
-    shootLineStart = Offset(judo.x + judo.width / 2, judo.y + judo.height / 2);
     screenRect = Rect.fromLTWH(0.0, 0.0, screenSize.width, screenSize.height);
+    shootLineStart = screenRect.center;
+//    shootLineStart = Offset(judo.x + judo.width / 2, judo.y + judo.height / 2);
 
     bulletStart = Offset(screenSize.width / 2, screenSize.height / 2);
   }
