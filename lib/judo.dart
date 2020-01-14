@@ -80,10 +80,11 @@ class Judo extends PositionComponent {
       dir = dOffset.direction;
       toWalk();
 
-      var stepMove = Offset.fromDirection(dOffset.direction, judoSpeed);
+      var stepMove = Offset.fromDirection(dOffset.direction, judoSpeed * dt);
       var target = toPosition().toOffset() + stepMove;
-      newOffset = Offset.lerp(toPosition().toOffset(), target, dt);
-      setByPosition(Position.fromOffset(newOffset));
+      setByPosition(Position.fromOffset(target));
+//      newOffset = Offset.lerp(toPosition().toOffset(), target, dt);
+//      setByPosition(Position.fromOffset(newOffset));
     } else {
       toIdle();
     }

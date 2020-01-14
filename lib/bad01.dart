@@ -72,11 +72,11 @@ class Bad01 extends PositionComponent {
         toDestroy = true;
       }
 
-      if (JoGame.walk) {
-        var target = toPosition().toOffset() + game.mapMoveStep;
-        var newOffset = Offset.lerp(toPosition().toOffset(), target, dt);
-        setByPosition(Position.fromOffset(newOffset));
-      }
+//      if (JoGame.walk) {
+//        var target = toPosition().toOffset() + game.mapMoveStep;
+//        var newOffset = Offset.lerp(toPosition().toOffset(), target, dt);
+//        setByPosition(Position.fromOffset(newOffset));
+//      }
 
       if (isLeftDir) {
         renderFlipX = true;

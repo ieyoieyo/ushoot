@@ -31,6 +31,7 @@ class JoGame extends BaseGame with PanDetector {
   Judo judo;
   Bad01 bad01;
   static bool walk = false;
+  final double cameraSpeed = 28.0;
 
   final paint = Paint()..color = const Color(0xFFE5E5E5E5);
 
@@ -114,24 +115,26 @@ class JoGame extends BaseGame with PanDetector {
     //移動Camera
     if (dir_panStart != null &&
         dir_panEnd != null &&
-        ((judo.x - camera.x > judoCenterPos.dx + 1) ||
-            (judo.y - camera.y > judoCenterPos.dy + 1))) {
-//      print("judo Offset = ${judo.toPosition().toOffset()}");
-      judoMoved =
-          Offset(judo.x - judoCenterPos.dx, judo.y - judoCenterPos.dy);
-      var newOffset = Offset.lerp(camera.toOffset(), judoMoved, t);
-      camera.x = newOffset.dx;
-      camera.y = newOffset.dy;
-//      print("judoMoved= ${judoMoved}");
-      var stepMove = Offset.fromDirection((panEnd-panStart).direction, judo.judoSpeed);
-      var target = shootLineStart + stepMove;
-      var aa = Offset.lerp(shootLineStart, target, t);
-      shootLineStart = aa;
-//      shootLineStart = Offset.lerp(shootLineStart, screenRect.center+judoMoved, t);
+        ((judo.x - camera.x > judoCenterPos.x + 1) ||
+            (judo.x - camera.x < judoCenterPos.x - 1) ||
+            (judo.y - camera.y > judoCenterPos.y + 1) ||
+            (judo.y - camera.y < judoCenterPos.y - 1))) {
+      judoMoved = (judo.toPosition() - camera - judoCenterPos).toOffset();
+      var step = Offset.fromDirection(judoMoved.direction, cameraSpeed * t);
+      var newPosition = camera.toOffset() + step;
+      camera.x = newPosition.dx;
+      camera.y = newPosition.dy;
+
+//      var newOffset = Offset.lerp(camera.toOffset(), judoMoved, t);
+//      camera.x = newOffset.dx;
+//      camera.y = newOffset.dy;
+
+      //移動射線的起點(保持在主角的中心)
+      var diff = judo.toPosition() - camera - judoCenterPos;
+      shootLineStart = screenRect.center + diff.toOffset();
     }
 
     if (walk) {
-
 //      var dOffset = dir_panStart - dir_panEnd;
 //      judo.dir = dOffset.direction;
 //      judo.toWalk();
@@ -173,10 +176,9 @@ class JoGame extends BaseGame with PanDetector {
       canvas.drawRect(bad01.hitRect,
           Paint()..color = Colors.lightGreenAccent.withAlpha(200));
     }
-
   }
 
-  Offset judoCenterPos; //主角置中時，主角的Position
+  Position judoCenterPos; //主角置中時，主角的Position
 
   @override
   void resize(Size size) {
@@ -190,7 +192,7 @@ class JoGame extends BaseGame with PanDetector {
 //    print("unit = $unit, judo.width = ${judo.width}");
     judo.x = (screenSize.width - judo.width) / 2;
     judo.y = (screenSize.height - judo.height) / 2;
-    judoCenterPos = Offset(judo.x, judo.y);
+    judoCenterPos = judo.toPosition();
     bad01.x = 480.0;
     bad01.y = 20.0;
     screenRect = Rect.fromLTWH(0.0, 0.0, screenSize.width, screenSize.height);
