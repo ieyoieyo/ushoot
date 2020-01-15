@@ -17,13 +17,12 @@ import 'package:ushoot/judo.dart';
 import 'package:ushoot/player.dart';
 
 import 'bad01.dart';
-import 'main.dart';
 
 class JoGame extends BaseGame with PanDetector {
   bool isDebug = false;
   Player player;
   Size screenSize;
-  static double unit;
+  static double unit; // S7 = 40.0
   static Offset panStart, panEnd, dir_panStart, dir_panEnd;
   Paint shootLinePaint, bulletPaint;
   static bool drawLine = false;
@@ -31,9 +30,9 @@ class JoGame extends BaseGame with PanDetector {
   Judo judo;
   Bad01 bad01;
   static bool walk = false;
-  final double cameraSpeed = 28.0;
-
   final paint = Paint()..color = const Color(0xFFE5E5E5E5);
+
+  double get cameraSpeed => unit * .86;
 
   JoGame() {
     player = Player(this);
@@ -44,7 +43,7 @@ class JoGame extends BaseGame with PanDetector {
 
     bulletPaint = Paint()
       ..strokeWidth = bulletWidth
-      ..color = Colors.yellow[800].withAlpha(210);
+      ..color = Colors.yellow[600].withAlpha(210);
 
     init();
   }
@@ -69,48 +68,20 @@ class JoGame extends BaseGame with PanDetector {
     add(player);
   }
 
-  String _aa = "Look";
-
-  get action {
-    return _aa = _aa == "Look" ? "Jump" : "Look";
-  }
-
   final double judoSpeed = 40.0;
   Offset shootLineStart, shootLineEnd, bulletStart, bulletEnd;
   double bulletSpeed = 22.0;
   double bulletDirection = 0;
   double bulletWidth = 18.0;
-
-  Offset judoMoved;
+  static bool bltJustStart = false;
 
   @override
   void update(double t) {
+    if (screenSize == null) return;
+
     super.update(t);
+
     countdown.update(t);
-
-    if (drawLine) {
-      var pOffset = panEnd - panStart;
-      shootLineEnd =
-          shootLineStart + Offset.fromDirection(pOffset.direction, 220.0);
-
-      if (!bulletGo) bulletDirection = pOffset.direction;
-    }
-
-    if (bulletGo) {
-      if (screenSize != null) {
-        if (screenSize.contains(bulletStart)) {
-          bulletStart += Offset.fromDirection(bulletDirection, bulletSpeed);
-          bulletEnd = bulletStart + Offset.fromDirection(bulletDirection, 60.0);
-
-          isHit();
-        } else {
-          bulletGo = false;
-          bulletStart = Offset(screenSize.width / 2, screenSize.height / 2);
-          lockShoot = false;
-          bulletDirection = 0;
-        }
-      }
-    }
 
     //移動Camera
     if (dir_panStart != null &&
@@ -119,7 +90,7 @@ class JoGame extends BaseGame with PanDetector {
             (judo.x - camera.x < judoCenterPos.x - 1) ||
             (judo.y - camera.y > judoCenterPos.y + 1) ||
             (judo.y - camera.y < judoCenterPos.y - 1))) {
-      judoMoved = (judo.toPosition() - camera - judoCenterPos).toOffset();
+      var judoMoved = (judo.toPosition() - camera - judoCenterPos).toOffset();
       var step = Offset.fromDirection(judoMoved.direction, cameraSpeed * t);
       var newPosition = camera.toOffset() + step;
       camera.x = newPosition.dx;
@@ -132,6 +103,32 @@ class JoGame extends BaseGame with PanDetector {
       //移動射線的起點(保持在主角的中心)
       var diff = judo.toPosition() - camera - judoCenterPos;
       shootLineStart = screenRect.center + diff.toOffset();
+    }
+
+    if (drawLine) {
+      var pOffset = panEnd - panStart;
+      shootLineEnd =
+          shootLineStart + Offset.fromDirection(pOffset.direction, unit * 5.5);
+
+      if (!bulletGo) bulletDirection = pOffset.direction;
+    }
+
+    if (bulletGo) {
+      if (bltJustStart) {
+        bltJustStart = false;
+        bulletStart = shootLineStart;
+      }
+      if (screenSize.contains(bulletStart)) {
+        bulletStart += Offset.fromDirection(bulletDirection, bulletSpeed);
+        bulletEnd = bulletStart + Offset.fromDirection(bulletDirection, 60.0);
+
+        isHit();
+      } else {
+        bulletGo = false;
+        bulletStart = Offset(screenSize.width / 2, screenSize.height / 2);
+        lockShoot = false;
+        bulletDirection = 0;
+      }
     }
 
     if (walk) {
@@ -150,6 +147,8 @@ class JoGame extends BaseGame with PanDetector {
 
   @override
   void render(Canvas canvas) {
+    if (screenSize == null) return;
+
     super.render(canvas);
 
     if (drawLine) {
@@ -172,10 +171,10 @@ class JoGame extends BaseGame with PanDetector {
       }
     }
 
-    if (isDebug && !bad01.isDead) {
-      canvas.drawRect(bad01.hitRect,
-          Paint()..color = Colors.lightGreenAccent.withAlpha(200));
-    }
+//    if (isDebug && !bad01.isDead) {
+//      canvas.drawRect(bad01.hitRect,
+//          Paint()..color = Colors.lightGreenAccent.withAlpha(200));
+//    }
   }
 
   Position judoCenterPos; //主角置中時，主角的Position
@@ -189,7 +188,7 @@ class JoGame extends BaseGame with PanDetector {
 //
 //    judo.width = judo.height = unit;
 //    judo.init(unit * 1.2, unit * 1.2);
-//    print("unit = $unit, judo.width = ${judo.width}");
+    print("unit = $unit, screenSize = $screenSize");
     judo.x = (screenSize.width - judo.width) / 2;
     judo.y = (screenSize.height - judo.height) / 2;
     judoCenterPos = judo.toPosition();
@@ -210,12 +209,13 @@ class JoGame extends BaseGame with PanDetector {
     bltHitPointB = bulletEnd +
         Offset.fromDirection(bulletDirection - pi / 2, bulletWidth / 2);
     [bulletEnd]..forEach((offset) {
-        if (bad01.hitRect.contains(offset)) {
+        var transToWorld =
+            bad01.hitRect.translate(bad01.x - camera.x, bad01.y - camera.y);
+        if (transToWorld.contains(offset)) {
           print("HIT");
           bad01.toDead();
         }
       });
-//    print("a = $a,,, b = $b");
   }
 
 //  @override
@@ -326,6 +326,7 @@ class JoGame extends BaseGame with PanDetector {
   static final Timer countdown = Timer(.06, callback: () {
     bulletGo = true;
     lockShoot = true;
+    bltJustStart = true;
   });
 
   @override

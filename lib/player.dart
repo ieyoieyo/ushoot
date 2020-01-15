@@ -7,7 +7,7 @@ class Player extends SpriteComponent {
 
   Player(this.game) : super.fromSprite(36.0, 36.0, Sprite("player_1.png")){
     this.x = 120.0;
-    this.y = 120.0;
+    this.y = 110.0;
   }
 
   bool goLeft = false;
@@ -17,7 +17,7 @@ class Player extends SpriteComponent {
   void update(double t) {
     super.update(t);
 
-    var isContain = game.screenRect?.contains(toPosition().toOffset());
+    var isContain = game.screenRect?.contains((toPosition()-game.camera).toOffset());
     if (isContain != null) {
       if (goLeft) {
         if (isContain)

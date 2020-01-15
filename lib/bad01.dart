@@ -17,18 +17,21 @@ class Bad01 extends PositionComponent {
   bool isDead = false;
   bool toDestroy = false;
   double dir;
+  Paint debugPaint = Paint()..color = Colors.lightGreenAccent.withAlpha(200);
 
   double get bad01Size {
     return JoGame.unit * 2.4;
   }
 
   Rect get hitRect {
-    Rect rr = toRect();
     return Rect.fromCenter(
-            center: rr.center, width: rr.width / 4, height: rr.height / 6)
-        .translate(0, rr.height / 15);
-//    return Rect.fromLTRB(rr.left + width *2/5, rr.top + height * 4 / 9,
-//        rr.right - width / 3, rr.bottom - width / 3);
+      center: Offset(
+        width / 2,
+        height / 2 + height / 15,
+      ),
+      width: width / 4,
+      height: height / 6,
+    );
   }
 
   Bad01(this.game, this.fileName, this.animName) {}
@@ -50,7 +53,7 @@ class Bad01 extends PositionComponent {
     if (dir == null)
       return false;
     else
-      return dir == 0 ? false : dir.abs() < pi / 2;
+      return dir == 0 ? false : dir.abs() > pi / 2;
   }
 
   void toDead() {
@@ -63,14 +66,34 @@ class Bad01 extends PositionComponent {
   @override
   bool loaded() => _flareAnimation != null;
 
+  bool nextPosFlag = false;
+  Position newPos;
+
+  Position nextPosition() {
+    var diffOffset = (toPosition() - game.judo.toPosition()).toOffset();
+//    print("my var >> ${diffOffset.direction}");
+    var dis = Random().nextDouble() * 10 * (2 * JoGame.unit);
+    if (diffOffset.dx.abs() > JoGame.unit * 7 ||
+        diffOffset.dy.abs() > JoGame.unit * 3) {
+      // x,y方向都太遠
+      newPos =
+          Position.fromOffset(Offset.fromDirection(diffOffset.direction, dis));
+    } else {
+      newPos = Position.fromOffset(
+          Offset.fromDirection(Random().nextDouble() * 3.1, dis));
+    }
+    return newPos;
+  }
+
   @override
   void update(double dt) {
-    if (_flareAnimation != null) {
-      countdown.update(dt);
+    if (!loaded()) return;
 
-      if (countdown.isFinished()) {
-        toDestroy = true;
-      }
+    countdown.update(dt);
+
+    if (countdown.isFinished()) {
+      toDestroy = true;
+    }
 
 //      if (JoGame.walk) {
 //        var target = toPosition().toOffset() + game.mapMoveStep;
@@ -78,14 +101,13 @@ class Bad01 extends PositionComponent {
 //        setByPosition(Position.fromOffset(newOffset));
 //      }
 
-      if (isLeftDir) {
-        renderFlipX = true;
-      } else {
-        renderFlipX = false;
-      }
+    renderFlipX = isLeftDir;
 
-      _flareAnimation.update(dt);
+    if (toPosition().distance(game.judo.toPosition()) < 1) {
+      nextPosition();
     }
+
+    _flareAnimation.update(dt);
   }
 
   @override
@@ -94,6 +116,8 @@ class Bad01 extends PositionComponent {
     if (!loaded()) return;
 
     _flareAnimation.render(canvas, x: 0, y: 0);
+
+    canvas.drawRect(hitRect, debugPaint);
   }
 
   @override

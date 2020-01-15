@@ -9,7 +9,8 @@ import 'package:ushoot/JoGame.dart';
 class Judo extends PositionComponent {
   FlareAnimation _flareAnimation;
   final JoGame game;
-  final double judoSpeed = 40.0;
+
+  double get speed => JoGame.unit;
 
   double get judoSize {
     return JoGame.unit * 2.4;
@@ -69,18 +70,14 @@ class Judo extends PositionComponent {
   void update(double dt) {
     if (!loaded()) return;
 
-    if (isLeftDir) {
-      renderFlipX = true;
-    } else {
-      renderFlipX = false;
-    }
+    renderFlipX = isLeftDir;
 
     if (JoGame.walk) {
       var dOffset = JoGame.dir_panEnd - JoGame.dir_panStart;
       dir = dOffset.direction;
       toWalk();
 
-      var stepMove = Offset.fromDirection(dOffset.direction, judoSpeed * dt);
+      var stepMove = Offset.fromDirection(dOffset.direction, speed * dt);
       var target = toPosition().toOffset() + stepMove;
       setByPosition(Position.fromOffset(target));
 //      newOffset = Offset.lerp(toPosition().toOffset(), target, dt);
