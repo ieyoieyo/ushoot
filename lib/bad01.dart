@@ -47,6 +47,8 @@ class Bad01 extends PositionComponent {
       _flareAnimation.width = width;
       _flareAnimation.height = height;
     });
+
+    newPos = nextPosition();
   }
 
   bool get isLeftDir {
@@ -69,19 +71,26 @@ class Bad01 extends PositionComponent {
   bool nextPosFlag = false;
   Position newPos;
 
+  double get speed => JoGame.unit * .4;
+
   Position nextPosition() {
-    var diffOffset = (toPosition() - game.judo.toPosition()).toOffset();
-//    print("my var >> ${diffOffset.direction}");
-    var dis = Random().nextDouble() * 10 * (2 * JoGame.unit);
+    ///要算壞人到主角的offset和角度，竟是用 (主角 - 壞人)？！不太懂！
+    var diffOffset = (game.judo.toPosition() - toPosition()).toOffset();
+    var dis = Random().nextDouble() * 2 * JoGame.unit + JoGame.unit / 3;
+//    print("my var >> ${diffOffset}");
     if (diffOffset.dx.abs() > JoGame.unit * 7 ||
         diffOffset.dy.abs() > JoGame.unit * 3) {
       // x,y方向都太遠
-      newPos =
-          Position.fromOffset(Offset.fromDirection(diffOffset.direction, dis));
+//      print("太遠");
+      newPos = Position.fromOffset(toPosition().toOffset() +
+          Offset.fromDirection(diffOffset.direction, dis));
     } else {
-      newPos = Position.fromOffset(
-          Offset.fromDirection(Random().nextDouble() * 3.1, dis));
+//      print("近");
+      int upDown = Random().nextBool() ? 1 : -1;
+      newPos = Position.fromOffset(toPosition().toOffset() +
+          Offset.fromDirection(Random().nextDouble() * pi * upDown, dis));
     }
+//    print("___newPos = $newPos");
     return newPos;
   }
 
@@ -103,8 +112,14 @@ class Bad01 extends PositionComponent {
 
     renderFlipX = isLeftDir;
 
-    if (toPosition().distance(game.judo.toPosition()) < 1) {
-      nextPosition();
+    var step = speed * dt;
+    if (toPosition().distance(newPos) < step) {
+      setByPosition(newPos);
+      newPos = nextPosition();
+    } else {
+      var diff = newPos - toPosition();
+      var move = Offset.fromDirection(diff.toOffset().direction, step);
+      setByPosition(toPosition() + Position.fromOffset(move));
     }
 
     _flareAnimation.update(dt);
@@ -117,7 +132,7 @@ class Bad01 extends PositionComponent {
 
     _flareAnimation.render(canvas, x: 0, y: 0);
 
-    canvas.drawRect(hitRect, debugPaint);
+    if (game.isDebug) canvas.drawRect(hitRect, debugPaint);
   }
 
   @override

@@ -19,7 +19,7 @@ import 'package:ushoot/player.dart';
 import 'bad01.dart';
 
 class JoGame extends BaseGame with PanDetector {
-  bool isDebug = false;
+  bool isDebug = true;
   Player player;
   Size screenSize;
   static double unit; // S7 = 40.0
@@ -33,6 +33,8 @@ class JoGame extends BaseGame with PanDetector {
   final paint = Paint()..color = const Color(0xFFE5E5E5E5);
 
   double get cameraSpeed => unit * .86;
+
+  set cameraSpeed(double value) => value;
 
   JoGame() {
     player = Player(this);
@@ -61,11 +63,14 @@ class JoGame extends BaseGame with PanDetector {
 
     bad01 = Bad01(this, "assets/flare/bad01.flr", "Walk");
     add(bad01);
+    coms.add(bad01);
 
     judo = Judo(this, "assets/flare/stupid.flr", "Idle");
     add(judo);
+    coms.add(judo);
 
     add(player);
+    coms.add(player);
   }
 
   final double judoSpeed = 40.0;
@@ -75,6 +80,8 @@ class JoGame extends BaseGame with PanDetector {
   double bulletWidth = 18.0;
   static bool bltJustStart = false;
 
+  List<PositionComponent> coms = [];
+
   @override
   void update(double t) {
     if (screenSize == null) return;
@@ -83,6 +90,19 @@ class JoGame extends BaseGame with PanDetector {
 
     countdown.update(t);
 
+//    coms.sort((a,b) => a.y.compareTo(b.y));
+//    for (int i = 0; i < coms.length; i++){
+//      var gg = coms[i].priority() ;
+//      print("gg = $gg");
+//    }
+    if (judo.toRect().overlaps(bad01.toRect())){
+      print("重重");
+    }
+
+//    if ((judo.x - camera.x).abs() > 120.0 ||
+//        (judo.y - camera.y).abs() > 100.0) {
+//      cameraSpeed = unit * 4;
+//    }
     //移動Camera
     if (dir_panStart != null &&
         dir_panEnd != null &&
@@ -183,20 +203,15 @@ class JoGame extends BaseGame with PanDetector {
   void resize(Size size) {
     this.screenSize = size;
     unit = screenSize.height / 9;
-
-    super.resize(size);
-//
-//    judo.width = judo.height = unit;
-//    judo.init(unit * 1.2, unit * 1.2);
     print("unit = $unit, screenSize = $screenSize");
-    judo.x = (screenSize.width - judo.width) / 2;
-    judo.y = (screenSize.height - judo.height) / 2;
+    super.resize(size);
+//    judo.x = (screenSize.width - judo.width) / 2;
+//    judo.y = (screenSize.height - judo.height) / 2;
     judoCenterPos = judo.toPosition();
     bad01.x = 480.0;
     bad01.y = 20.0;
     screenRect = Rect.fromLTWH(0.0, 0.0, screenSize.width, screenSize.height);
     shootLineStart = screenRect.center;
-//    shootLineStart = Offset(judo.x + judo.width / 2, judo.y + judo.height / 2);
 
     bulletStart = Offset(screenSize.width / 2, screenSize.height / 2);
   }
@@ -287,7 +302,7 @@ class JoGame extends BaseGame with PanDetector {
   var moveDrag = _DragHandler(move_onDragUpdate, move_onDragEnd);
 
   Drag input(Offset offset) {
-    print("offset.dx = ${offset.dx}");
+//    print("offset.dx = ${offset.dx}");
     if (offset.dx < screenSize.width / 2) {
       return moveDrag;
     } else {
@@ -302,7 +317,7 @@ class JoGame extends BaseGame with PanDetector {
     walk = true;
   };
   static GestureDragEndCallback move_onDragEnd = (DragEndDetails details) {
-    print("move onEnd");
+//    print("move onEnd");
     walk = false;
   };
 
@@ -313,7 +328,7 @@ class JoGame extends BaseGame with PanDetector {
     drawLine = true;
   };
   static GestureDragEndCallback shoot_onDragEnd = (DragEndDetails details) {
-    print("shoot onEnd");
+//    print("shoot onEnd");
 //    if (drawLine) {
     drawLine = false;
 

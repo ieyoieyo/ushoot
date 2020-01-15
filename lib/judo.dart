@@ -6,6 +6,8 @@ import 'package:flame/flare_animation.dart';
 import 'package:flame/position.dart';
 import 'package:ushoot/JoGame.dart';
 
+///主角
+///用 FlareComponent 來改的 Class。因為 FlareComponent 不能切換動畫(updateAnimation)
 class Judo extends PositionComponent {
   FlareAnimation _flareAnimation;
   final JoGame game;
@@ -19,6 +21,14 @@ class Judo extends PositionComponent {
   String fileName, animation;
   bool toJump = false;
   double dir;
+
+  @override
+  int priority() {
+    for (int i = 0; i < game.coms.length; i++){
+      print("dddd .. ${game.coms[i].y}");
+    }
+    return 99;
+  }
 
   Judo(this.game, this.fileName, this.animation) {
 //    this.fileName = fileName;
@@ -100,6 +110,8 @@ class Judo extends PositionComponent {
   @override
   void resize(Size size) {
     init(judoSize, judoSize);
+    x = (size.width - width) / 2;
+    y = (size.height - height) / 2;
     print("JUDO: unit = ${JoGame.unit}, judo.width = ${width}");
   }
 }
