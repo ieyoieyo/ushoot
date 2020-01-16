@@ -24,10 +24,7 @@ class Judo extends PositionComponent {
 
   @override
   int priority() {
-    for (int i = 0; i < game.coms.length; i++){
-      print("dddd .. ${game.coms[i].y}");
-    }
-    return 99;
+    return y.toInt();
   }
 
   Judo(this.game, this.fileName, this.animation) {

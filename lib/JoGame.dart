@@ -13,8 +13,11 @@ import 'package:flame/text_config.dart';
 import 'package:flame/time.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:ushoot/joMap.dart';
 import 'package:ushoot/judo.dart';
 import 'package:ushoot/player.dart';
+import 'package:ordered_set/ordered_set.dart';
+import 'package:ordered_set/comparing.dart';
 
 import 'bad01.dart';
 
@@ -53,24 +56,28 @@ class JoGame extends BaseGame with PanDetector {
   final TextConfig fpsTextConfig =
       const TextConfig(color: const Color(0xFFFFFFFF));
 
-  SpriteComponent map;
+  JoMap map;
 
   void init() {
-    map = SpriteComponent.square(1300.0, "map.png")
-      ..x = -220.0
-      ..y = -285.0;
+//    map = SpriteComponent.square(1300.0, "map.png")
+//      ..x = -220.0
+//      ..y = -285.0;
+    map = JoMap(this);
     add(map);
 
     bad01 = Bad01(this, "assets/flare/bad01.flr", "Walk");
     add(bad01);
-    coms.add(bad01);
+    enemys.add(bad01);
 
     judo = Judo(this, "assets/flare/stupid.flr", "Idle");
     add(judo);
-    coms.add(judo);
+//    coms.add(judo);
 
     add(player);
-    coms.add(player);
+//    coms.add(player);
+
+    spawnBad01Timer = Timer(5, repeat: true, callback: spawn);
+    spawnBad01Timer.start();
   }
 
   final double judoSpeed = 40.0;
@@ -80,24 +87,21 @@ class JoGame extends BaseGame with PanDetector {
   double bulletWidth = 18.0;
   static bool bltJustStart = false;
 
-  List<PositionComponent> coms = [];
+  List<PositionComponent> enemys = [];
 
   @override
   void update(double t) {
     if (screenSize == null) return;
 
+    //重加所有 components。為了解決 render priority() Y 值高的晚 render
+    var list = components.toList();
+    components.clear();
+    components.addAll(list);
+
     super.update(t);
 
     countdown.update(t);
-
-//    coms.sort((a,b) => a.y.compareTo(b.y));
-//    for (int i = 0; i < coms.length; i++){
-//      var gg = coms[i].priority() ;
-//      print("gg = $gg");
-//    }
-    if (judo.toRect().overlaps(bad01.toRect())){
-      print("重重");
-    }
+    spawnBad01Timer.update(t);
 
 //    if ((judo.x - camera.x).abs() > 120.0 ||
 //        (judo.y - camera.y).abs() > 100.0) {
@@ -184,7 +188,7 @@ class JoGame extends BaseGame with PanDetector {
       if (isDebug) {
         canvas.drawPoints(
             PointMode.points,
-            [bltHitPointA, bltHitPointB, bulletStart, bulletEnd],
+            [bulletStart, bulletEnd],
             Paint()
               ..strokeWidth = 3.0
               ..color = Colors.lightGreenAccent);
@@ -216,21 +220,50 @@ class JoGame extends BaseGame with PanDetector {
     bulletStart = Offset(screenSize.width / 2, screenSize.height / 2);
   }
 
-  Offset bltHitPointA, bltHitPointB;
+  Random rdm = Random();
+
+  void spawn() {
+    double x, y;
+    if (rdm.nextBool()) {
+      //限制 x 方向在畫面外
+      x = rdm.nextBool()
+          ? camera.x + screenSize.width + 10
+          : camera.x - unit * 2;
+      y = rdm.nextDouble() * (camera.y + screenSize.height) - camera.y;
+    } else {
+      //限制 y 方向在畫面外
+      x = rdm.nextDouble() * (camera.x + screenSize.width) - camera.x;
+      y = rdm.nextBool()
+          ? camera.y + screenSize.height + 10
+          : camera.y - unit * 2;
+    }
+    var bad = Bad01(this, "assets/flare/bad01.flr", "Walk");
+    bad.x = x;
+    bad.y = y;
+    add(bad);
+    enemys.add(bad);
+  }
+
+  Timer spawnBad01Timer;
 
   void isHit() {
-    bltHitPointA = bulletEnd +
-        Offset.fromDirection(bulletDirection + pi / 2, bulletWidth / 2);
-    bltHitPointB = bulletEnd +
-        Offset.fromDirection(bulletDirection - pi / 2, bulletWidth / 2);
-    [bulletEnd]..forEach((offset) {
-        var transToWorld =
-            bad01.hitRect.translate(bad01.x - camera.x, bad01.y - camera.y);
-        if (transToWorld.contains(offset)) {
+    enemys.forEach((e) {
+      if (e is Bad01) {
+        var rect = e.hitRect.translate(e.x - camera.x, e.y - camera.y);
+        if (rect.contains(bulletEnd)) {
           print("HIT");
-          bad01.toDead();
+          e.toDead();
         }
-      });
+      }
+    });
+//    [bulletEnd].forEach((offset) {
+//        var transToWorld =
+//            bad01.hitRect.translate(bad01.x - camera.x, bad01.y - camera.y);
+//        if (transToWorld.contains(offset)) {
+//          print("HIT");
+//          bad01.toDead();
+//        }
+//      });
   }
 
 //  @override

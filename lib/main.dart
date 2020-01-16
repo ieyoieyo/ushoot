@@ -12,6 +12,7 @@ void main() async {
   ]);
   await Flame.util.fullScreen();
   await Flame.util.setLandscape();
+//  print(await Flame.util.initialDimensions());
   var game = JoGame();
   runApp(game.widget);
 

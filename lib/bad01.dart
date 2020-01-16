@@ -19,18 +19,16 @@ class Bad01 extends PositionComponent {
   double dir;
   Paint debugPaint = Paint()..color = Colors.lightGreenAccent.withAlpha(200);
 
-  double get bad01Size {
-    return JoGame.unit * 2.4;
-  }
+  double get bad01Size => JoGame.unit * 2.4;
 
   Rect get hitRect {
     return Rect.fromCenter(
       center: Offset(
         width / 2,
-        height / 2 + height / 15,
+        height / 2 + height / 20,
       ),
-      width: width / 4,
-      height: height / 6,
+      width: width *2/7,
+      height: height / 5,
     );
   }
 
@@ -62,7 +60,7 @@ class Bad01 extends PositionComponent {
     if (isDead) return;
     _flareAnimation.updateAnimation("Dead");
     isDead = true;
-    countdown.start();
+    deadAnimCountdown.start();
   }
 
   @override
@@ -76,39 +74,38 @@ class Bad01 extends PositionComponent {
   Position nextPosition() {
     ///要算壞人到主角的offset和角度，竟是用 (主角 - 壞人)？！不太懂！
     var diffOffset = (game.judo.toPosition() - toPosition()).toOffset();
+    dir = diffOffset.direction;
     var dis = Random().nextDouble() * 2 * JoGame.unit + JoGame.unit / 3;
 //    print("my var >> ${diffOffset}");
     if (diffOffset.dx.abs() > JoGame.unit * 7 ||
         diffOffset.dy.abs() > JoGame.unit * 3) {
-      // x,y方向都太遠
-//      print("太遠");
+//      print(" x,y方向都太遠");
       newPos = Position.fromOffset(toPosition().toOffset() +
           Offset.fromDirection(diffOffset.direction, dis));
     } else {
 //      print("近");
       int upDown = Random().nextBool() ? 1 : -1;
-      newPos = Position.fromOffset(toPosition().toOffset() +
-          Offset.fromDirection(Random().nextDouble() * pi * upDown, dis));
+      dir = Random().nextDouble() * pi * upDown;
+      newPos = Position.fromOffset(
+          toPosition().toOffset() + Offset.fromDirection(dir, dis));
     }
-//    print("___newPos = $newPos");
     return newPos;
+  }
+
+  @override
+  int priority() {
+    return y.toInt();
   }
 
   @override
   void update(double dt) {
     if (!loaded()) return;
 
-    countdown.update(dt);
+    deadAnimCountdown.update(dt);
 
-    if (countdown.isFinished()) {
+    if (deadAnimCountdown.isFinished()) {
       toDestroy = true;
     }
-
-//      if (JoGame.walk) {
-//        var target = toPosition().toOffset() + game.mapMoveStep;
-//        var newOffset = Offset.lerp(toPosition().toOffset(), target, dt);
-//        setByPosition(Position.fromOffset(newOffset));
-//      }
 
     renderFlipX = isLeftDir;
 
@@ -145,5 +142,5 @@ class Bad01 extends PositionComponent {
     return toDestroy;
   }
 
-  final Timer countdown = Timer(.55);
+  final Timer deadAnimCountdown = Timer(.55);
 }
