@@ -22,7 +22,7 @@ import 'package:ordered_set/comparing.dart';
 import 'bad01.dart';
 
 class JoGame extends BaseGame with PanDetector {
-  bool isDebug = true;
+  bool isDebug = false;
   Player player;
   Size screenSize;
   static double unit; // S7 = 40.0
@@ -71,10 +71,8 @@ class JoGame extends BaseGame with PanDetector {
 
     judo = Judo(this, "assets/flare/stupid.flr", "Idle");
     add(judo);
-//    coms.add(judo);
 
     add(player);
-//    coms.add(player);
 
     spawnBad01Timer = Timer(5, repeat: true, callback: spawn);
     spawnBad01Timer.start();
@@ -195,6 +193,9 @@ class JoGame extends BaseGame with PanDetector {
       }
     }
 
+    if (isDebug) {
+      fpsTextConfig.render(canvas, fps(120).toString(), Position(0, 10));
+    }
 //    if (isDebug && !bad01.isDead) {
 //      canvas.drawRect(bad01.hitRect,
 //          Paint()..color = Colors.lightGreenAccent.withAlpha(200));
@@ -250,7 +251,7 @@ class JoGame extends BaseGame with PanDetector {
     enemys.forEach((e) {
       if (e is Bad01) {
         var rect = e.hitRect.translate(e.x - camera.x, e.y - camera.y);
-        if (rect.contains(bulletEnd)) {
+        if (rect.contains(bulletEnd) || rect.contains(bulletStart)) {
           print("HIT");
           e.toDead();
         }

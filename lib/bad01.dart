@@ -13,7 +13,7 @@ class Bad01 extends PositionComponent {
   FlareAnimation _flareAnimation;
   final JoGame game;
   final String fileName;
-  String animName;
+  final String animName;
   bool isDead = false;
   bool toDestroy = false;
   double dir;
@@ -21,16 +21,17 @@ class Bad01 extends PositionComponent {
 
   double get bad01Size => JoGame.unit * 2.4;
 
-  Rect get hitRect {
-    return Rect.fromCenter(
-      center: Offset(
-        width / 2,
-        height / 2 + height / 20,
-      ),
-      width: width *2/7,
-      height: height / 5,
-    );
-  }
+//  Rect get hitRect {
+//    return Rect.fromCenter(
+//      center: Offset(
+//        width / 2,
+//        height / 2 + height / 20,
+//      ),
+//      width: width *2/7,
+//      height: height / 5,
+//    );
+//  }
+  Rect hitRect;
 
   Bad01(this.game, this.fileName, this.animName) {}
 
@@ -45,6 +46,15 @@ class Bad01 extends PositionComponent {
       _flareAnimation.width = width;
       _flareAnimation.height = height;
     });
+
+    hitRect = Rect.fromCenter(
+      center: Offset(
+        width / 2,
+        height / 2 + height / 20,
+      ),
+      width: width *2/7,
+      height: height / 5,
+    );
 
     newPos = nextPosition();
   }
@@ -66,7 +76,6 @@ class Bad01 extends PositionComponent {
   @override
   bool loaded() => _flareAnimation != null;
 
-  bool nextPosFlag = false;
   Position newPos;
 
   double get speed => JoGame.unit * .4;
@@ -129,7 +138,7 @@ class Bad01 extends PositionComponent {
 
     _flareAnimation.render(canvas, x: 0, y: 0);
 
-    if (game.isDebug) canvas.drawRect(hitRect, debugPaint);
+//    if (game.isDebug) canvas.drawRect(hitRect, debugPaint);
   }
 
   @override
