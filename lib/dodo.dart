@@ -2,8 +2,10 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flame/animation.dart' as flameAnim;
+import 'package:flame/animation.dart';
 import 'package:flame/components/animation_component.dart';
 import 'package:flame/position.dart';
+import 'package:flame/sprite.dart';
 import 'package:flame/time.dart';
 import 'package:flutter/material.dart';
 import 'package:ushoot/JoGame.dart';
@@ -11,7 +13,7 @@ import 'package:ushoot/JoGame.dart';
 import 'enemy.dart';
 
 class Dodo extends Enemy {
-  final JoGame game;
+//  final JoGame game;
   bool isDead = false;
   bool toDestroy = false;
   double dir;
@@ -24,12 +26,14 @@ class Dodo extends Enemy {
 
   double get speed => JoGame.unit * .4;
 
-  Dodo(this.game) : super.empty();
+  Dodo(JoGame game) : super(game);
+
+  flameAnim.Animation explodeAnim;
 
   void init() {
     width = height = wh;
     animation = flameAnim.Animation.sequenced("bad.png", 10,
-        textureWidth: 100.0, textureHeight: 100.0, stepTime: 0.125);
+        textureWidth: 180.0, textureHeight: 180.0, stepTime: 0.125);
     newPos = nextPosition();
     hitRect = Rect.fromCenter(
       center: Offset(
@@ -39,6 +43,19 @@ class Dodo extends Enemy {
       width: width * 4 / 9,
       height: height * 2 / 7,
     );
+    explodeAnim = flameAnim.Animation.empty()..loop=false;
+    explodeAnim.frames = List<Frame>(90);
+    for (var i = 0; i < 90; i++) {
+      var row = i ~/ 8;
+      final Sprite sprite = Sprite(
+        "8.png",
+        x:  (i%8) * 64.0,
+        y: row * 48.0,
+        width: 64.0,
+        height: 48.0,
+      );
+      explodeAnim.frames[i] = Frame(sprite, .0125);
+    }
   }
 
   bool get isLeftDir {
@@ -51,7 +68,7 @@ class Dodo extends Enemy {
   @override
   void toDead() {
     if (isDead) return;
-//    _flareAnimation.updateAnimation("Dead");
+    animation = explodeAnim;
     isDead = true;
     deadAnimCountdown.start();
   }
@@ -95,14 +112,16 @@ class Dodo extends Enemy {
     renderFlipX = isLeftDir;
 
     //走路
-    var step = speed * dt;
-    if (toPosition().distance(newPos) < step) {
-      setByPosition(newPos);
-      newPos = nextPosition();
-    } else {
-      var diff = newPos - toPosition();
-      var move = Offset.fromDirection(diff.toOffset().direction, step);
-      setByPosition(toPosition() + Position.fromOffset(move));
+    if (!isDead){
+      var step = speed * dt;
+      if (toPosition().distance(newPos) < step) {
+        setByPosition(newPos);
+        newPos = nextPosition();
+      } else {
+        var diff = newPos - toPosition();
+        var move = Offset.fromDirection(diff.toOffset().direction, step);
+        setByPosition(toPosition() + Position.fromOffset(move));
+      }
     }
 
     super.update(dt);
@@ -122,7 +141,7 @@ class Dodo extends Enemy {
     return toDestroy;
   }
 
-  final Timer deadAnimCountdown = Timer(.55);
+  final Timer deadAnimCountdown = Timer(1.125);
 
   @override
   void resize(Size size) {

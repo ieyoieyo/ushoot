@@ -10,6 +10,7 @@ void main() async {
     "player_1.png",
     "map.png",
     "bad.png",
+    "8.png",
   ]);
   await Flame.util.fullScreen();
   await Flame.util.setLandscape();

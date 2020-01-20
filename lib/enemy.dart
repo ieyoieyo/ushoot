@@ -1,11 +1,14 @@
 import 'dart:ui';
 
 import 'package:flame/components/animation_component.dart';
+import 'package:ushoot/JoGame.dart';
 
- abstract class Enemy extends AnimationComponent{
-  Enemy.empty() : super.empty();
+abstract class Enemy extends AnimationComponent {
+  final JoGame game;
 
-  Rect  hitRect;
+  Enemy(this.game) : super.empty();
+
+  Rect hitRect;
 
   void toDead() {}
 //  set hitRect(Rect rect);
