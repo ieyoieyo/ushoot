@@ -13,6 +13,7 @@ import 'package:flame/text_config.dart';
 import 'package:flame/time.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:ushoot/enemy.dart';
 import 'package:ushoot/joMap.dart';
 import 'package:ushoot/judo.dart';
 import 'package:ushoot/player.dart';
@@ -20,9 +21,10 @@ import 'package:ordered_set/ordered_set.dart';
 import 'package:ordered_set/comparing.dart';
 
 import 'bad01.dart';
+import 'dodo.dart';
 
 class JoGame extends BaseGame with PanDetector {
-  bool isDebug = false;
+  bool isDebug = true;
   Player player;
   Size screenSize;
   static double unit; // S7 = 40.0
@@ -59,33 +61,32 @@ class JoGame extends BaseGame with PanDetector {
   JoMap map;
 
   void init() {
-//    map = SpriteComponent.square(1300.0, "map.png")
-//      ..x = -220.0
-//      ..y = -285.0;
     map = JoMap(this);
     add(map);
 
     bad01 = Bad01(this, "assets/flare/bad01.flr", "Walk");
-    add(bad01);
-    enemys.add(bad01);
+//    add(bad01);
+//    enemies.add(bad01);
+    var dodo = Dodo(this)..setByPosition(Position(400, 130));
+    add(dodo);
+    enemies.add(dodo);
 
     judo = Judo(this, "assets/flare/stupid.flr", "Idle");
     add(judo);
 
-    add(player);
+//    add(player);
 
     spawnBad01Timer = Timer(5, repeat: true, callback: spawn);
     spawnBad01Timer.start();
   }
 
-  final double judoSpeed = 40.0;
   Offset shootLineStart, shootLineEnd, bulletStart, bulletEnd;
   double bulletSpeed = 22.0;
   double bulletDirection = 0;
   double bulletWidth = 18.0;
   static bool bltJustStart = false;
 
-  List<PositionComponent> enemys = [];
+  List<Enemy> enemies = [];
 
   @override
   void update(double t) {
@@ -224,6 +225,8 @@ class JoGame extends BaseGame with PanDetector {
   Random rdm = Random();
 
   void spawn() {
+    if (enemies.length >= 6) return;
+
     double x, y;
     if (rdm.nextBool()) {
       //限制 x 方向在畫面外
@@ -238,24 +241,32 @@ class JoGame extends BaseGame with PanDetector {
           ? camera.y + screenSize.height + 10
           : camera.y - unit * 2;
     }
-    var bad = Bad01(this, "assets/flare/bad01.flr", "Walk");
-    bad.x = x;
-    bad.y = y;
-    add(bad);
-    enemys.add(bad);
+    var dodo = Dodo(this)..setByPosition(Position(x, y));
+    add(dodo);
+    enemies.add(dodo);
+//    var bad = Bad01(this, "assets/flare/bad01.flr", "Walk");
+//    bad.x = x;
+//    bad.y = y;
+//    add(bad);
+//    enemies.add(bad);
   }
 
   Timer spawnBad01Timer;
 
   void isHit() {
-    enemys.forEach((e) {
-      if (e is Bad01) {
-        var rect = e.hitRect.translate(e.x - camera.x, e.y - camera.y);
-        if (rect.contains(bulletEnd) || rect.contains(bulletStart)) {
-          print("HIT");
-          e.toDead();
-        }
+    var deads = <Enemy>[];
+    enemies.forEach((e) {
+//      if (e is Dodo) {
+      var rect = e.hitRect.translate(e.x - camera.x, e.y - camera.y);
+      if (rect.contains(bulletEnd) || rect.contains(bulletStart)) {
+        print("HIT");
+        e.toDead();
+        deads.add(e);
       }
+//      }
+    });
+    deads.forEach((e) {
+      enemies.remove(e);
     });
 //    [bulletEnd].forEach((offset) {
 //        var transToWorld =

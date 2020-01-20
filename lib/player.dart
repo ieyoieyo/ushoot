@@ -17,7 +17,7 @@ class Player extends SpriteComponent {
   void update(double t) {
     super.update(t);
 
-    var isContain = game.screenRect?.contains((toPosition()-game.camera).toOffset());
+    var isContain = game.screenRect.contains((toPosition()-game.camera).toOffset());
     if (isContain != null) {
       if (goLeft) {
         if (isContain)

@@ -1,62 +1,44 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:flame/components/component.dart';
-import 'package:flame/flare_animation.dart';
+import 'package:flame/animation.dart' as flameAnim;
+import 'package:flame/components/animation_component.dart';
 import 'package:flame/position.dart';
 import 'package:flame/time.dart';
 import 'package:flutter/material.dart';
 import 'package:ushoot/JoGame.dart';
 
-///用 FlareComponent 來改的 Class。因為 FlareComponent 不能切換動畫(updateAnimation)
-class Bad01 extends PositionComponent {
-  FlareAnimation _flareAnimation;
+import 'enemy.dart';
+
+class Dodo extends Enemy {
   final JoGame game;
-  final String fileName;
-  final String animName;
   bool isDead = false;
   bool toDestroy = false;
   double dir;
   Paint debugPaint = Paint()..color = Colors.lightGreenAccent.withAlpha(200);
 
-  double get bad01Size => JoGame.unit * 2.4;
+//  Rect hitRect;
+  Position newPos;
 
-//  Rect get hitRect {
-//    return Rect.fromCenter(
-//      center: Offset(
-//        width / 2,
-//        height / 2 + height / 20,
-//      ),
-//      width: width *2/7,
-//      height: height / 5,
-//    );
-//  }
-  Rect hitRect;
+  double get wh => JoGame.unit * 1.74;
 
-  Bad01(this.game, this.fileName, this.animName);
+  double get speed => JoGame.unit * .4;
 
-  void init(double width, double height) {
-    this.width = width;
-    this.height = height;
+  Dodo(this.game) : super.empty();
 
-    FlareAnimation.load(fileName).then((loadedFlareAnimation) {
-      _flareAnimation = loadedFlareAnimation;
-
-      _flareAnimation.updateAnimation(animName);
-      _flareAnimation.width = width;
-      _flareAnimation.height = height;
-    });
-
+  void init() {
+    width = height = wh;
+    animation = flameAnim.Animation.sequenced("bad.png", 10,
+        textureWidth: 100.0, textureHeight: 100.0, stepTime: 0.125);
+    newPos = nextPosition();
     hitRect = Rect.fromCenter(
       center: Offset(
-        width / 2,
+        width / 2 + width / 30,
         height / 2 + height / 20,
       ),
-      width: width *2/7,
-      height: height / 5,
+      width: width * 4 / 9,
+      height: height * 2 / 7,
     );
-
-    newPos = nextPosition();
   }
 
   bool get isLeftDir {
@@ -66,19 +48,13 @@ class Bad01 extends PositionComponent {
       return dir == 0 ? false : dir.abs() > pi / 2;
   }
 
+  @override
   void toDead() {
     if (isDead) return;
-    _flareAnimation.updateAnimation("Dead");
+//    _flareAnimation.updateAnimation("Dead");
     isDead = true;
     deadAnimCountdown.start();
   }
-
-  @override
-  bool loaded() => _flareAnimation != null;
-
-  Position newPos;
-
-  double get speed => JoGame.unit * .4;
 
   Position nextPosition() {
     ///要算壞人到主角的offset和角度，竟是用 (主角 - 壞人)？！不太懂！
@@ -103,14 +79,14 @@ class Bad01 extends PositionComponent {
 
   @override
   int priority() {
-    return y.toInt();
+    return (y + width * 78 / 100).toInt();
   }
 
   @override
   void update(double dt) {
     if (!loaded()) return;
 
-    deadAnimCountdown.update(dt);
+    if (isDead) deadAnimCountdown.update(dt);
 
     if (deadAnimCountdown.isFinished()) {
       toDestroy = true;
@@ -118,6 +94,7 @@ class Bad01 extends PositionComponent {
 
     renderFlipX = isLeftDir;
 
+    //走路
     var step = speed * dt;
     if (toPosition().distance(newPos) < step) {
       setByPosition(newPos);
@@ -128,22 +105,16 @@ class Bad01 extends PositionComponent {
       setByPosition(toPosition() + Position.fromOffset(move));
     }
 
-    _flareAnimation.update(dt);
+    super.update(dt);
   }
 
   @override
   void render(Canvas canvas) {
-    prepareCanvas(canvas);
     if (!loaded()) return;
 
-    _flareAnimation.render(canvas, x: 0, y: 0);
+    super.render(canvas);
 
 //    if (game.isDebug) canvas.drawRect(hitRect, debugPaint);
-  }
-
-  @override
-  void resize(Size size) {
-    init(bad01Size, bad01Size);
   }
 
   @override
@@ -152,4 +123,9 @@ class Bad01 extends PositionComponent {
   }
 
   final Timer deadAnimCountdown = Timer(.55);
+
+  @override
+  void resize(Size size) {
+    init();
+  }
 }

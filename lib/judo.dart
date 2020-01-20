@@ -24,7 +24,7 @@ class Judo extends PositionComponent {
 
   @override
   int priority() {
-    return y.toInt();
+    return (y + width * 270 / 368).toInt();
   }
 
   Judo(this.game, this.fileName, this.animation) {
