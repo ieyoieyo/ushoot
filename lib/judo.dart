@@ -86,7 +86,16 @@ class Judo extends PositionComponent {
 
       var stepMove = Offset.fromDirection(dir, speed * dt);
       var target = toPosition().toOffset() + stepMove;
-      setByPosition(Position.fromOffset(target));
+      if (target.dx > game.map.x &&
+          target.dx < game.map.x + game.map.width - width) {
+        x = target.dx;
+      }
+      if (target.dy > game.map.y &&
+          target.dy < game.map.y + game.map.height - height) {
+        y = target.dy;
+      }
+
+//      setByPosition(Position.fromOffset(target));
 //      newOffset = Offset.lerp(toPosition().toOffset(), target, dt);
 //      setByPosition(Position.fromOffset(newOffset));
     } else {

@@ -116,16 +116,22 @@ class JoGame extends BaseGame with PanDetector {
       var judoMoved = (judo.toPosition() - camera - judoCenterPos).toOffset();
       var step = Offset.fromDirection(judoMoved.direction, cameraSpeed * t);
       var newPosition = camera.toOffset() + step;
-      camera.x = newPosition.dx;
-      camera.y = newPosition.dy;
+      if (newPosition.dx > map.x && newPosition.dx < map.x+map.width- screenSize.width) {
+        camera.x = newPosition.dx;
+      }
+//      print("___${newPosition}");
+      if (newPosition.dy > map.y &&
+          newPosition.dy < map.y+map.height - screenSize.height) {
+        camera.y = newPosition.dy;
+      }
 
 //      var newOffset = Offset.lerp(camera.toOffset(), judoMoved, t);
 //      camera.x = newOffset.dx;
 //      camera.y = newOffset.dy;
 
       //移動射線的起點(保持在主角的中心)
-      var diff = judo.toPosition() - camera - judoCenterPos;
-      shootLineStart = screenRect.center + diff.toOffset();
+//      var diff = judo.toPosition() - camera - judoCenterPos;
+      shootLineStart = screenRect.center + judoMoved;
     }
 
     if (drawLine) {
