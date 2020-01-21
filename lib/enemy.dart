@@ -10,6 +10,7 @@ abstract class Enemy extends AnimationComponent {
   final JoGame game;
   Animation explodeAnim;
   Rect hitRect;
+  bool fireFlag = false;
 
   Enemy(this.game) : super.empty() {
     explodeAnim = Util.atlasSprite("8.png", 90, 8, 64.0, 48.0, .0125, false);

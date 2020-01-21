@@ -10,6 +10,7 @@ import 'package:flame/sprite.dart';
 import 'package:flame/time.dart';
 import 'package:flutter/material.dart';
 import 'package:ushoot/JoGame.dart';
+import 'package:ushoot/util.dart';
 
 import 'enemy.dart';
 
@@ -29,11 +30,12 @@ class Dodo extends Enemy {
 
   Dodo(JoGame game) : super(game);
 
-  void init() async {
+  void init() {
     width = height = wh;
 
-    animation = flameAnim.Animation.sequenced("bad.png", 10,
-        textureWidth: 180.0, textureHeight: 180.0, stepTime: 0.125);
+//    animation = flameAnim.Animation.sequenced("bad.png", 10,
+//        textureWidth: 180.0, textureHeight: 180.0, stepTime: 0.125);
+    animation = Util.atlasSprite("bad.png", 10, 10, 180, 180, .125);
 
     newPos = nextPosition();
 
@@ -47,8 +49,6 @@ class Dodo extends Enemy {
     );
 
     time = DateTime.now().millisecondsSinceEpoch;
-
-    bullet = SpriteComponent.square(12.0, "player_1.png");
   }
 
   bool get isLeftDir {
@@ -93,35 +93,11 @@ class Dodo extends Enemy {
     return newPos;
   }
 
-  int time;
-  SpriteComponent bullet;
   double get bulletSpeed => JoGame.unit * .1;
+
   double bulletDir;
-  bool shootFlag, shootSetting = false;
-
-  void shoot(double dt) {
-    if (shootFlag) return;
-    shootFlag = true;
-
-    if (!shootSetting){
-      var juCenter = game.judo.toRect().center;
-      var diffOffset = juCenter - toPosition().toOffset();
-      bulletDir = diffOffset.direction;
-//      shootFlag = false;
-
-      var dis = bulletSpeed * dt;
-      var step=Offset.fromDirection(bulletDir, dis);
-      var newPos = toPosition() + Position.fromOffset(step);
-      bullet.setByPosition(newPos);
-      shootSetting = true;
-    }
-
-    var dis = bulletSpeed * dt;
-    var step=Offset.fromDirection(bulletDir, dis);
-    var newPos = bullet.toPosition() + Position.fromOffset(step);
-    bullet.setByPosition(newPos);
-//    print("sssss_${diffOffset.direction}");
-  }
+  bool shootSetting = false;
+  int time;
 
   @override
   int priority() {
@@ -131,6 +107,7 @@ class Dodo extends Enemy {
   @override
   void update(double dt) {
     if (!loaded()) return;
+    super.update(dt);
 
     if (isDead) deadAnimCountdown.update(dt);
 
@@ -153,13 +130,11 @@ class Dodo extends Enemy {
       }
     }
 
-    if (!shootFlag && DateTime.now().millisecondsSinceEpoch - time > 3000) {
-//      shootFlag = true;
-      shoot(dt);
-
+    if (!shootSetting &&
+        (DateTime.now().millisecondsSinceEpoch - time) > 3000) {
+      shootSetting = true;
+      fireFlag = true;
     }
-
-    super.update(dt);
   }
 
   @override

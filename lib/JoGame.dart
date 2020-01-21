@@ -13,6 +13,7 @@ import 'package:flame/text_config.dart';
 import 'package:flame/time.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:ushoot/bullet_enemy.dart';
 import 'package:ushoot/enemy.dart';
 import 'package:ushoot/joMap.dart';
 import 'package:ushoot/judo.dart';
@@ -116,12 +117,13 @@ class JoGame extends BaseGame with PanDetector {
       var judoMoved = (judo.toPosition() - camera - judoCenterPos).toOffset();
       var step = Offset.fromDirection(judoMoved.direction, cameraSpeed * t);
       var newPosition = camera.toOffset() + step;
-      if (newPosition.dx > map.x && newPosition.dx < map.x+map.width- screenSize.width) {
+      if (newPosition.dx > map.x &&
+          newPosition.dx < map.x + map.width - screenSize.width) {
         camera.x = newPosition.dx;
       }
 //      print("___${newPosition}");
       if (newPosition.dy > map.y &&
-          newPosition.dy < map.y+map.height - screenSize.height) {
+          newPosition.dy < map.y + map.height - screenSize.height) {
         camera.y = newPosition.dy;
       }
 
@@ -160,17 +162,14 @@ class JoGame extends BaseGame with PanDetector {
       }
     }
 
-    if (walk) {
-//      var dOffset = dir_panStart - dir_panEnd;
-//      judo.dir = dOffset.direction;
-//      judo.toWalk();
-//
-//      mapMoveStep = Offset.fromDirection(dOffset.direction, judoSpeed);
-//      var target = map.toPosition().toOffset() + mapMoveStep;
-//      var newOffset = Offset.lerp(map.toPosition().toOffset(), target, t);
-//      map.setByPosition(Position.fromOffset(newOffset));
-    } else {
-//      judo.toIdle();
+    //檢查所有 Enemy: 發射Enemy子彈，
+    for (int i = 0; i < enemies.length; i++) {
+      var enemy = enemies[i];
+      if (enemy.fireFlag) {
+        enemy.fireFlag = false;
+        var blt = Bullet(this, Position.fromOffset(enemy.toRect().center));
+        add(blt);
+      }
     }
   }
 
