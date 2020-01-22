@@ -65,7 +65,7 @@ class JoGame extends BaseGame with PanDetector {
     map = JoMap(this);
     add(map);
 
-    bad01 = Bad01(this, "assets/flare/bad01.flr", "Walk");
+//    bad01 = Bad01(this, "assets/flare/bad01.flr", "Walk");
 //    add(bad01);
 //    enemies.add(bad01);
     var dodo = Dodo(this)..setByPosition(Position(400, 130));
@@ -89,7 +89,7 @@ class JoGame extends BaseGame with PanDetector {
 
   List<Enemy> enemies = [];
   List<Bullet> bullets = [];
-  Offset judoMoved; //主角相對於螢幕中心的位移
+  Offset judoMoved = Offset.zero; //主角相對於螢幕中心的位移
 
   @override
   void update(double t) {
@@ -175,7 +175,20 @@ class JoGame extends BaseGame with PanDetector {
       }
     }
 
-    for (int i = 0; i < bullets.length; i++) {}
+    //檢查所有 Bullet: 玩家被射中
+    var removeBltList = <Bullet>[];
+    for (int i = 0; i < bullets.length; i++) {
+      var blt = bullets[i];
+      if (judo.hitRect.translate(judo.x, judo.y).overlaps(blt.toRect())) {
+//        print("玩家中彈！");
+      }
+      if (blt.toDestroy) {
+        removeBltList.add(blt);
+      }
+    }
+    removeBltList.forEach((blt){
+      bullets.remove(blt);
+    });
   }
 
   @override
@@ -207,7 +220,11 @@ class JoGame extends BaseGame with PanDetector {
     if (isDebug) {
       fpsTextConfig.render(canvas, fps(120).toString(), Position(0, 10));
 
-      canvas.drawRect(judo.hitRect.shift(judoMoved), Paint()..color = Colors.lightGreenAccent);
+      //秀玩家的 hitRect！！注意！！rr 並非「世界位置」！
+      var rr = judo.hitRect.translate(judo.x - camera.x, judo.y - camera.y);
+//      var rr = judo.hitRect.translate(judo.x, judo.y);
+      canvas.drawRect(
+          rr, Paint()..color = Colors.lightGreenAccent.withAlpha(200));
     }
 //    if (isDebug && !bad01.isDead) {
 //      canvas.drawRect(bad01.hitRect,
@@ -222,12 +239,13 @@ class JoGame extends BaseGame with PanDetector {
     this.screenSize = size;
     unit = screenSize.height / 9;
     print("unit = $unit, screenSize = $screenSize");
+    //這裡先做完 super 的 judo 才會有寬、高值！
     super.resize(size);
-//    judo.x = (screenSize.width - judo.width) / 2;
-//    judo.y = (screenSize.height - judo.height) / 2;
+    judo.x = (screenSize.width - judo.width) / 2;
+    judo.y = (screenSize.height - judo.height) / 2;
     judoCenterPos = judo.toPosition();
-    bad01.x = 480.0;
-    bad01.y = 20.0;
+//    bad01.x = 480.0;
+//    bad01.y = 20.0;
     screenRect = Rect.fromLTWH(0.0, 0.0, screenSize.width, screenSize.height);
     shootLineStart = screenRect.center;
 

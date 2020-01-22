@@ -49,6 +49,10 @@ class Dodo extends Enemy {
     );
 
     time = DateTime.now().millisecondsSinceEpoch;
+
+    fireTimer = Timer(3, repeat: true, callback: () {
+      fireFlag = true;
+    });
   }
 
   bool get isLeftDir {
@@ -109,7 +113,11 @@ class Dodo extends Enemy {
     if (!loaded()) return;
     super.update(dt);
 
-    if (isDead) deadAnimCountdown.update(dt);
+    if (isDead) {
+      deadAnimCountdown.update(dt);
+    } else{
+      fireTimer.update(dt);
+    }
 
     if (deadAnimCountdown.isFinished()) {
       toDestroy = true;
@@ -134,6 +142,7 @@ class Dodo extends Enemy {
         (DateTime.now().millisecondsSinceEpoch - time) > 3000) {
       shootSetting = true;
       fireFlag = true;
+      fireTimer.start();
     }
   }
 
@@ -152,6 +161,7 @@ class Dodo extends Enemy {
   }
 
   final Timer deadAnimCountdown = Timer(1.125);
+  Timer fireTimer;
 
   @override
   void resize(Size size) {

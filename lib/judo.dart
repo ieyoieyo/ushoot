@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flame/components/component.dart';
 import 'package:flame/flare_animation.dart';
 import 'package:flame/position.dart';
+import 'package:flutter/material.dart';
 import 'package:ushoot/JoGame.dart';
 
 ///主角
@@ -32,9 +33,9 @@ class Judo extends PositionComponent {
 //    this.animation = animation;
   }
 
-  void init(double width, double height) {
-    this.width = width;
-    this.height = height;
+  void init() {
+    this.width = judoSize;
+    this.height = judoSize;
 
     FlareAnimation.load(fileName).then((loadedFlareAnimation) {
       _flareAnimation = loadedFlareAnimation;
@@ -45,10 +46,17 @@ class Judo extends PositionComponent {
     });
 
     hitRect = Rect.fromCenter(
-        center: toRect().center, width: width / 2, height: height / 3);
+            center: Offset(width / 2, height / 2),
+            width: width * 4 / 11,
+            height: height * 7 / 30)
+        .translate(0, JoGame.unit * .2);
   }
 
   Rect hitRect;
+
+//  Rect get hitRect => Rect.fromCenter(
+//      center: Offset(width/2, height/2), width: width *4/11, height: height *7/30)
+//      .translate(0, JoGame.unit*.2);
 
   bool get isLeftDir {
     if (dir == null)
@@ -116,13 +124,15 @@ class Judo extends PositionComponent {
   void render(Canvas canvas) {
     prepareCanvas(canvas);
     _flareAnimation.render(canvas, x: 0, y: 0);
+
+//    canvas.drawRect(hitRect, Paint()..color=Colors.lightGreenAccent.withAlpha(200));
   }
 
   @override
   void resize(Size size) {
-    init(judoSize, judoSize);
-    x = (size.width - width) / 2;
-    y = (size.height - height) / 2;
+    init();
+//    x = (size.width - width) / 2;
+//    y = (size.height - height) / 2;
     print("JUDO: unit = ${JoGame.unit}, judo.width = ${width}");
   }
 }
