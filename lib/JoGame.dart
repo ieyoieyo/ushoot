@@ -88,6 +88,8 @@ class JoGame extends BaseGame with PanDetector {
   static bool bltJustStart = false;
 
   List<Enemy> enemies = [];
+  List<Bullet> bullets = [];
+  Offset judoMoved; //主角相對於螢幕中心的位移
 
   @override
   void update(double t) {
@@ -114,7 +116,7 @@ class JoGame extends BaseGame with PanDetector {
             (judo.x - camera.x < judoCenterPos.x - 1) ||
             (judo.y - camera.y > judoCenterPos.y + 1) ||
             (judo.y - camera.y < judoCenterPos.y - 1))) {
-      var judoMoved = (judo.toPosition() - camera - judoCenterPos).toOffset();
+      judoMoved = (judo.toPosition() - camera - judoCenterPos).toOffset();
       var step = Offset.fromDirection(judoMoved.direction, cameraSpeed * t);
       var newPosition = camera.toOffset() + step;
       if (newPosition.dx > map.x &&
@@ -169,8 +171,11 @@ class JoGame extends BaseGame with PanDetector {
         enemy.fireFlag = false;
         var blt = Bullet(this, Position.fromOffset(enemy.toRect().center));
         add(blt);
+        bullets.add(blt);
       }
     }
+
+    for (int i = 0; i < bullets.length; i++) {}
   }
 
   @override
@@ -201,6 +206,8 @@ class JoGame extends BaseGame with PanDetector {
 
     if (isDebug) {
       fpsTextConfig.render(canvas, fps(120).toString(), Position(0, 10));
+
+      canvas.drawRect(judo.hitRect.shift(judoMoved), Paint()..color = Colors.lightGreenAccent);
     }
 //    if (isDebug && !bad01.isDead) {
 //      canvas.drawRect(bad01.hitRect,

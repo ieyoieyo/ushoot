@@ -43,7 +43,12 @@ class Judo extends PositionComponent {
       _flareAnimation.width = width;
       _flareAnimation.height = height;
     });
+
+    hitRect = Rect.fromCenter(
+        center: toRect().center, width: width / 2, height: height / 3);
   }
+
+  Rect hitRect;
 
   bool get isLeftDir {
     if (dir == null)
